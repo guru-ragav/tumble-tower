@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tumble Tower - Data Structures Project</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover-color: #4338ca;
+            --background-dark: #0f172a;
+            --card-background: #1e293b;
+            --card-border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-danger: #ef4444;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: rgba(30, 41, 59, 0.95);
+            border-bottom: 1px solid var(--card-border-color);
+            padding: 16px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(8px);
+        }
+
+        .header-title-container h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #a5b4fc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title-container p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .header-action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .button-primary:hover:not(:disabled) {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-1px);
+        }
+
+        .button-secondary {
+            background-color: #334155;
+            color: var(--text-primary);
+        }
+
+        .button-secondary:hover:not(:disabled) {
+            background-color: #475569;
+        }
+
+        .button-danger {
+            background-color: var(--accent-danger);
+            color: white;
+        }
+
+        .button-danger:hover:not(:disabled) {
+            background-color: #dc2626;
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .main-game-layout {
+            display: grid;
+            grid-template-columns: 1fr 390px;
+            gap: 24px;
+            padding: 24px;
+            flex: 1;
+            max-width: 1550px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Tower Arena */
+        .tower-arena-panel {
+            background-color: var(--card-background);
+            border-radius: 16px;
+            border: 1px solid var(--card-border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tower-controls-bar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .search-block-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search-block-input {
+            background-color: #0f172a;
+            border: 1px solid var(--card-border-color);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            width: 220px;
+        }
+
+        .search-block-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .action-notification-box {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            display: none;
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .action-notification-error {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--accent-danger);
+            color: #fca5a5;
+        }
+
+        .action-notification-success {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--accent-success);
+            color: #6ee7b7;
+        }
+
+        .tower-canvas-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            overflow-y: auto;
+            padding: 40px 20px 20px 20px;
+            background: radial-gradient(circle at center bottom, #1e293b 0%, #0b1120 100%);
+            border-radius: 12px;
+            border: 1px solid #293548;
+            min-height: 520px;
+        }
+
+        .tower-scaffold {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 6px;
+            perspective: 1000px;
+            padding-bottom: 12px;
+        }
+
+        .tower-level-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .level-identifier-badge {
+            position: absolute;
+            left: -65px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            background-color: #0f172a;
+            padding: 3px 7px;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            user-select: none;
+        }
+
+        .tower-block {
+            width: 78px;
+            height: 38px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.3);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, opacity 0.3s ease;
+            position: relative;
+            user-select: none;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .tower-block:hover {
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.5);
+        }
+
+        .tower-block.selected-for-extraction {
+            transform: translateY(-8px) scale(1.08);
+            box-shadow: 0 0 0 3px #ffffff, 0 12px 20px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        .tower-block.search-match-highlight {
+            box-shadow: 0 0 0 3px #facc15, 0 0 20px #eab308;
+            animation: pulseBlock 1.2s infinite alternate;
+        }
+
+        @keyframes pulseBlock {
+            from { transform: scale(1.02); }
+            to { transform: scale(1.1); }
+        }
+
+        .empty-block-slot {
+            width: 78px;
+            height: 38px;
+            border: 1px dashed #334155;
+            border-radius: 6px;
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .tower-pedestal-base {
+            width: 320px;
+            height: 16px;
+            background: linear-gradient(180deg, #475569 0%, #1e293b 100%);
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+            border: 1px solid #64748b;
+            margin-top: 4px;
+        }
+
+        /* Sidebar Dashboard */
+        .sidebar-dashboard-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .dashboard-card {
+            background-color: var(--card-background);
+            border-radius: 14px;
+            border: 1px solid var(--card-border-color);
+            padding: 16px;
+        }
+
+        .card-heading {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .current-player-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.25), rgba(56, 189, 248, 0.1));
+            border: 1px solid #4f46e5;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .player-avatar-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+        }
+
+        .player-turn-details h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .player-turn-details p {
+            font-size: 0.78rem;
+            color: #94a3b8;
+        }
+
+        .turn-queue-list {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .queue-item-pill {
+            background-color: #0f172a;
+            border: 1px solid var(--card-border-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .queue-item-pill.front-turn {
+            border-color: var(--primary-color);
+            color: #a5b4fc;
+        }
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-card-box {
+            background-color: #0f172a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1px solid var(--card-border-color);
+        }
+
+        .stat-card-box span {
+            display: block;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-card-box strong {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #e2e8f0;
+        }
+
+        .moves-per-player-list {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-top: 1px solid var(--card-border-color);
+            padding-top: 8px;
+        }
+
+        .move-history-scroll-box {
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+
+        .history-record-entry {
+            background-color: #0f172a;
+            border-left: 3px solid var(--primary-color);
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-record-entry span {
+            color: var(--text-secondary);
+        }
+
+        /* DSA Live Inspector Modal/Drawer */
+        .dsa-live-inspector-panel {
+            background-color: #0b1120;
+            border-top: 2px solid var(--primary-color);
+            padding: 20px 28px;
+            display: none;
+            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        .dsa-live-inspector-panel.visible {
+            display: grid;
+        }
+
+        .dsa-structure-container {
+            background-color: #0f172a;
+            border: 1px solid var(--card-border-color);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .dsa-structure-container h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .dsa-node-display-box {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.74rem;
+            color: #cbd5e1;
+            background-color: #020617;
+            padding: 10px;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.45;
+            white-space: pre-wrap;
+        }
+
+        /* Modal Dialog */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(2, 6, 23, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-window {
+            background-color: var(--card-background);
+            border: 1px solid var(--card-border-color);
+            border-radius: 16px;
+            padding: 28px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.25s ease;
+        }
+
+        .modal-window h2 {
+            font-size: 1.35rem;
+            margin-bottom: 8px;
+        }
+
+        .modal-window p {
+            color: var(--text-secondary);
+            font-size: 0.86rem;
+            margin-bottom: 20px;
+        }
+
+        .player-input-row {
+            margin-bottom: 12px;
+        }
+
+        .player-input-row label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .player-input-row input {
+            width: 100%;
+            background-color: #0f172a;
+            border: 1px solid var(--card-border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @media (max-width: 990px) {
+            .main-game-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="header-title-container">
+            <h1>TUMBLE TOWER</h1>
+            <p>Data Structures Engine • Stack, Queue & Singly Linked List Implementation</p>
+        </div>
+        <div class="header-action-buttons">
+            <button id="toggleDataStructuresInspectorButton" class="button-secondary">Inspect Data Structures</button>
+            <button id="undoPlayerMoveButton" class="button-secondary" disabled>Undo Move</button>
+            <button id="restartGameModalButton" class="button-danger">Restart Game</button>
+        </div>
+    </header>
+
+    <!-- Main Game Canvas -->
+    <main class="main-game-layout">
+        
+        <!-- Left Section: Interactive Tower Arena -->
+        <section class="tower-arena-panel">
+            <div class="tower-controls-bar">
+                <div class="search-block-container">
+                    <input type="text" id="searchBlockInput" class="search-block-input" placeholder="Search block by # or colour...">
+                    <button id="executeBlockSearchButton" class="button-secondary">Search</button>
+                    <button id="clearBlockSearchButton" class="button-secondary">Clear</button>
+                </div>
+                <div>
+                    <span id="selectedBlockStatusBadge" style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">No block selected</span>
+                </div>
+            </div>
+
+            <!-- Error and Informational Notifications -->
+            <div id="gameNotificationBox" class="action-notification-box"></div>
+
+            <!-- Physical Tower Display Area -->
+            <div class="tower-canvas-wrapper">
+                <div id="visualTowerScaffold" class="tower-scaffold">
+                    <!-- Tower levels and blocks are rendered dynamically from the TowerLevelsLinkedList -->
+                </div>
+                <div class="tower-pedestal-base"></div>
+            </div>
+        </section>
+
+        <!-- Right Section: Game Dashboard & DS Telemetry -->
+        <aside class="sidebar-dashboard-panel">
+            
+            <!-- Current Player Turn Card -->
+            <div class="dashboard-card">
+                <div class="card-heading">Active Turn</div>
+                <div class="current-player-banner">
+                    <div id="currentPlayerAvatarCircle" class="player-avatar-circle">P1</div>
+                    <div class="player-turn-details">
+                        <h3 id="currentPlayerNameHeader">Player 1</h3>
+                        <p id="playerTurnActionGuidance">Select a block to remove and place on top</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player Turn Queue Card -->
+            <div class="dashboard-card">
+                <div class="card-heading">
+                    <span>Turn Queue</span>
+                    <span style="font-size: 0.72rem; color: #64748b;">FIFO Queue</span>
+                </div>
+                <div id="playerTurnQueueContainer" class="turn-queue-list">
+                    <!-- Rendered from PlayerTurnQueue -->
+                </div>
+            </div>
+
+            <!-- Tower Status & Statistics Card -->
+            <div class="dashboard-card">
+                <div class="card-heading">Tower Telemetry & Statistics</div>
+                <div class="statistics-grid">
+                    <div class="stat-card-box">
+                        <span>Tower Levels</span>
+                        <strong id="telemetryLevelCount">10</strong>
+                    </div>
+                    <div class="stat-card-box">
+                        <span>Total Blocks</span>
+                        <strong id="telemetryBlockCount">30</strong>
+                    </div>
+                    <div class="stat-card-box">
+                        <span>Total Moves</span>
+                        <strong id="telemetryTotalMoves">0</strong>
+                    </div>
+                    <div class="stat-card-box">
+                        <span>Blocks Placed</span>
+                        <strong id="telemetryBlocksPlaced">0</strong>
+                    </div>
+                </div>
+                <div id="movesPerPlayerContainer" class="moves-per-player-list">
+                    <!-- Moves per player rendered here -->
+                </div>
+            </div>
+
+            <!-- Move History Stack Card -->
+            <div class="dashboard-card" style="flex: 1;">
+                <div class="card-heading">
+                    <span>Move History</span>
+                    <span style="font-size: 0.72rem; color: #64748b;">LIFO Stack</span>
+                </div>
+                <div id="moveHistoryLogContainer" class="move-history-scroll-box">
+                    <div style="font-size: 0.78rem; color: #64748b; text-align: center; padding: 20px;">No moves recorded yet</div>
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- Viva Live Data Structures Inspector -->
+    <section id="liveDataStructuresInspectorSection" class="dsa-live-inspector-panel">
+        <div class="dsa-structure-container">
+            <h4>Tower State: Singly Linked List</h4>
+            <div id="linkedListInspectorDisplay" class="dsa-node-display-box">Head -> NULL</div>
+        </div>
+        <div class="dsa-structure-container">
+            <h4>Turn Queue: Custom Queue</h4>
+            <div id="queueInspectorDisplay" class="dsa-node-display-box">Front -> NULL</div>
+        </div>
+        <div class="dsa-structure-container">
+            <h4>History Stack: Custom LIFO Stack</h4>
+            <div id="stackInspectorDisplay" class="dsa-node-display-box">Top -> NULL</div>
+        </div>
+        <div class="dsa-structure-container">
+            <h4>Auxiliary Stack: Removal Mechanics</h4>
+            <div id="auxiliaryStackInspectorDisplay" class="dsa-node-display-box">Idle (Pops upper levels and restores during extraction)</div>
+        </div>
+    </section>
+
+    <!-- Player Setup Modal Dialog -->
+    <div id="playerSetupModalOverlay" class="modal-overlay">
+        <div class="modal-window">
+            <h2>Tower Setup</h2>
+            <p>Configure 2 to 4 players for this session.</p>
+            <div class="player-input-row">
+                <label for="playerOneInput">Player 1 Name:</label>
+                <input type="text" id="playerOneInput" value="Alice" maxlength="15">
+            </div>
+            <div class="player-input-row">
+                <label for="playerTwoInput">Player 2 Name:</label>
+                <input type="text" id="playerTwoInput" value="Bob" maxlength="15">
+            </div>
+            <div class="player-input-row">
+                <label for="playerThreeInput">Player 3 Name (Optional):</label>
+                <input type="text" id="playerThreeInput" placeholder="Charlie" maxlength="15">
+            </div>
+            <div class="player-input-row">
+                <label for="playerFourInput">Player 4 Name (Optional):</label>
+                <input type="text" id="playerFourInput" placeholder="Diana" maxlength="15">
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="beginGameSessionButton" class="button-primary">Begin Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal Dialog -->
+    <div id="gameOverModalOverlay" class="modal-overlay" style="display: none;">
+        <div class="modal-window" style="text-align: center;">
+            <h2 id="gameOverTitleHeading" style="color: var(--accent-danger); font-size: 1.8rem; margin-bottom: 12px;">Tower Collapsed!</h2>
+            <p id="gameOverSummaryMessage" style="font-size: 1rem; color: #cbd5e1; margin-bottom: 24px;"></p>
+            <button id="modalRestartSessionButton" class="button-primary" style="width: 100%;">Start New Game</button>
+        </div>
+    </div>
+
+    <!-- Custom Data Structures & Game Logic Script -->
+    <script>
+        /**
+         * TUMBLE TOWER DATA STRUCTURES ENGINE
+         * Strict requirement: No native array mutator functions (push, pop, shift, unshift, splice).
+         * Manual implementations of StackNode, Stack, QueueNode, Queue, LevelNode, LinkedList.
+         */
+
+        /* ==========================================================================
+           1. CUSTOM STACK DATA STRUCTURE (LIFO: Last-In, First-Out)
+           ========================================================================== */
+
+        /**
+         * Represents a single node inside a TowerBlockStack or MoveHistoryStack.
+         * Contains a reference to the stored data item and a pointer to the next stack node below it.
+         */
+        class TowerStackNode {
+            constructor(stackDataPayload) {
+                this.stackDataPayload = stackDataPayload;
+                this.nextStackNode = null;
+            }
+        }
+
+        /**
+         * Custom Stack implementation using linked stack nodes.
+         * Used for:
+         * 1) Block storage and auxiliary removal traversal.
+         * 2) Game move history tracking and undo functionality.
+         */
+        class CustomLinkedStack {
+            constructor() {
+                this.topStackNode = null;
+                this.stackTotalCount = 0;
+            }
+
+            /**
+             * Pushes a new item onto the top of the stack.
+             * Time Complexity: O(1)
+             * Explanatory Note for Viva: Creates a new stack node, points its next pointer
+             * to the current top node, and reassigns the top node pointer to the new node.
+             */
+            pushItemOntoStack(stackDataPayload) {
+                const newlyCreatedStackNode = new TowerStackNode(stackDataPayload);
+                newlyCreatedStackNode.nextStackNode = this.topStackNode;
+                this.topStackNode = newlyCreatedStackNode;
+                this.stackTotalCount = this.stackTotalCount + 1;
+            }
+
+            /**
+             * Removes and returns the item currently at the top of the stack.
+             * Time Complexity: O(1)
+             * Explanatory Note for Viva: Saves the data payload of the top node,
+             * advances the top pointer to top.nextStackNode, and decrements count.
+             */
+            popItemFromStack() {
+                if (this.isStackEmpty()) {
+                    return null;
+                }
+                const poppedPayload = this.topStackNode.stackDataPayload;
+                this.topStackNode = this.topStackNode.nextStackNode;
+                this.stackTotalCount = this.stackTotalCount - 1;
+                return poppedPayload;
+            }
+
+            /**
+             * Inspects the item at the top of the stack without removing it.
+             * Time Complexity: O(1)
+             */
+            peekTopStackItem() {
+                if (this.isStackEmpty()) {
+                    return null;
+                }
+                return this.topStackNode.stackDataPayload;
+            }
+
+            /**
+             * Returns true if the stack contains zero elements.
+             */
+            isStackEmpty() {
+                return this.topStackNode === null;
+            }
+
+            /**
+             * Clears all elements from the stack by resetting the top pointer.
+             */
+            clearStack() {
+                this.topStackNode = null;
+                this.stackTotalCount = 0;
+            }
+
+            /**
+             * Formats the stack nodes into an explanatory string for viva visualization.
+             */
+            formatStackForDisplay() {
+                if (this.isStackEmpty()) {
+                    return "Top -> [Empty Stack]";
+                }
+                let formattedOutputString = "Top -> ";
+                let currentTraversalNode = this.topStackNode;
+                while (currentTraversalNode !== null) {
+                    const itemPayload = currentTraversalNode.stackDataPayload;
+                    if (itemPayload.actionDescription) {
+                        formattedOutputString += `[${itemPayload.actionDescription}] -> `;
+                    } else if (itemPayload.blockIdentifier) {
+                        formattedOutputString += `[#${itemPayload.blockIdentifier} ${itemPayload.blockColour}] -> `;
+                    } else {
+                        formattedOutputString += `[Item] -> `;
+                    }
+                    currentTraversalNode = currentTraversalNode.nextStackNode;
+                }
+                return formattedOutputString + "Base";
+            }
+        }
+
+        /* ==========================================================================
+           2. CUSTOM QUEUE DATA STRUCTURE (FIFO: First-In, First-Out)
+           ========================================================================== */
+
+        /**
+         * Represents a single node within the player turns queue.
+         */
+        class PlayerQueueNode {
+            constructor(playerDataPayload) {
+                this.playerDataPayload = playerDataPayload;
+                this.nextQueueNode = null;
+            }
+        }
+
+        /**
+         * Custom Queue implementation using linked nodes with front and rear pointers.
+         * Used for: Managing player turns in cyclical order.
+         */
+        class CustomPlayerQueue {
+            constructor() {
+                this.frontQueueNode = null;
+                this.rearQueueNode = null;
+                this.queueTotalCount = 0;
+            }
+
+            /**
+             * Enqueues a player at the rear of the queue.
+             * Time Complexity: O(1)
+             * Explanatory Note for Viva: If the queue is empty, both front and rear
+             * point to the new node. Otherwise, rear.next points to the new node and rear advances.
+             */
+            enqueuePlayer(playerDataPayload) {
+                const newlyCreatedQueueNode = new PlayerQueueNode(playerDataPayload);
+                if (this.isQueueEmpty()) {
+                    this.frontQueueNode = newlyCreatedQueueNode;
+                    this.rearQueueNode = newlyCreatedQueueNode;
+                } else {
+                    this.rearQueueNode.nextQueueNode = newlyCreatedQueueNode;
+                    this.rearQueueNode = newlyCreatedQueueNode;
+                }
+                this.queueTotalCount = this.queueTotalCount + 1;
+            }
+
+            /**
+             * Dequeues the player at the front of the queue.
+             * Time Complexity: O(1)
+             * Explanatory Note for Viva: Retrieves front.playerDataPayload, advances
+             * front to front.nextQueueNode. If front becomes null, rear is set to null.
+             */
+            dequeuePlayer() {
+                if (this.isQueueEmpty()) {
+                    return null;
+                }
+                const dequeuedPayload = this.frontQueueNode.playerDataPayload;
+                this.frontQueueNode = this.frontQueueNode.nextQueueNode;
+                if (this.frontQueueNode === null) {
+                    this.rearQueueNode = null;
+                }
+                this.queueTotalCount = this.queueTotalCount - 1;
+                return dequeuedPayload;
+            }
+
+            /**
+             * Reinserts a player back at the FRONT of the queue.
+             * Special operation for: Undoing a move (returns the turn to the previous player).
+             * Time Complexity: O(1)
+             */
+            putPlayerBackAtFrontOfQueue(playerDataPayload) {
+                const newlyCreatedQueueNode = new PlayerQueueNode(playerDataPayload);
+                if (this.isQueueEmpty()) {
+                    this.frontQueueNode = newlyCreatedQueueNode;
+                    this.rearQueueNode = newlyCreatedQueueNode;
+                } else {
+                    newlyCreatedQueueNode.nextQueueNode = this.frontQueueNode;
+                    this.frontQueueNode = newlyCreatedQueueNode;
+                }
+                this.queueTotalCount = this.queueTotalCount + 1;
+            }
+
+            /**
+             * Inspects the player at the front of the queue without dequeuing.
+             */
+            peekFrontPlayer() {
+                if (this.isQueueEmpty()) {
+                    return null;
+                }
+                return this.frontQueueNode.playerDataPayload;
+            }
+
+            isQueueEmpty() {
+                return this.frontQueueNode === null;
+            }
+
+            /**
+             * Formats queue nodes into string for viva inspector.
+             */
+            formatQueueForDisplay() {
+                if (this.isQueueEmpty()) {
+                    return "Front -> [Empty Queue]";
+                }
+                let formattedOutputString = "Front -> ";
+                let currentTraversalNode = this.frontQueueNode;
+                while (currentTraversalNode !== null) {
+                    formattedOutputString += `[${currentTraversalNode.playerDataPayload.playerName}] -> `;
+                    currentTraversalNode = currentTraversalNode.nextQueueNode;
+                }
+                return formattedOutputString + "Rear";
+            }
+        }
+
+        /* ==========================================================================
+           3. CUSTOM SINGLY LINKED LIST DATA STRUCTURE (Tower Levels)
+           ========================================================================== */
+
+        /**
+         * Represents a single block in the tower.
+         */
+        class TowerBlockModel {
+            constructor(blockIdentifier, blockColour, currentLevelNumber, slotPositionIndex) {
+                this.blockIdentifier = blockIdentifier;
+                this.blockColour = blockColour;
+                this.currentLevelNumber = currentLevelNumber;
+                this.slotPositionIndex = slotPositionIndex; // 0 = Left Slot, 1 = Center Slot, 2 = Right Slot
+            }
+        }
+
+        /**
+         * Represents a level in the tower as a Linked List Node.
+         * Contains slots for up to three blocks and a pointer to the next lower level node.
+         */
+        class TowerLevelNode {
+            constructor(levelNumber) {
+                this.levelNumber = levelNumber;
+                // Each level holds up to 3 blocks explicitly without arrays
+                this.slotZeroBlock = null;
+                this.slotOneBlock = null;
+                this.slotTwoBlock = null;
+                this.nextLowerLevelNode = null;
+            }
+
+            /**
+             * Calculates how many blocks currently reside on this level.
+             */
+            calculateOccupiedBlockCount() {
+                let occupiedCounter = 0;
+                if (this.slotZeroBlock !== null) {
+                    occupiedCounter = occupiedCounter + 1;
+                }
+                if (this.slotOneBlock !== null) {
+                    occupiedCounter = occupiedCounter + 1;
+                }
+                if (this.slotTwoBlock !== null) {
+                    occupiedCounter = occupiedCounter + 1;
+                }
+                return occupiedCounter;
+            }
+
+            /**
+             * Checks if a block can be accepted onto this level.
+             */
+            hasAvailableSlot() {
+                return this.slotZeroBlock === null || this.slotOneBlock === null || this.slotTwoBlock === null;
+            }
+
+            /**
+             * Places a block into the first available slot.
+             */
+            placeBlockInFirstAvailableSlot(blockModel) {
+                if (this.slotZeroBlock === null) {
+                    this.slotZeroBlock = blockModel;
+                    blockModel.slotPositionIndex = 0;
+                    blockModel.currentLevelNumber = this.levelNumber;
+                    return 0;
+                }
+                if (this.slotOneBlock === null) {
+                    this.slotOneBlock = blockModel;
+                    blockModel.slotPositionIndex = 1;
+                    blockModel.currentLevelNumber = this.levelNumber;
+                    return 1;
+                }
+                if (this.slotTwoBlock === null) {
+                    this.slotTwoBlock = blockModel;
+                    blockModel.slotPositionIndex = 2;
+                    blockModel.currentLevelNumber = this.levelNumber;
+                    return 2;
+                }
+                return -1;
+            }
+
+            /**
+             * Extracts and returns the block located at the given slot index.
+             */
+            removeBlockFromSlotIndex(slotIndex) {
+                let removedBlockModel = null;
+                if (slotIndex === 0 && this.slotZeroBlock !== null) {
+                    removedBlockModel = this.slotZeroBlock;
+                    this.slotZeroBlock = null;
+                } else if (slotIndex === 1 && this.slotOneBlock !== null) {
+                    removedBlockModel = this.slotOneBlock;
+                    this.slotOneBlock = null;
+                } else if (slotIndex === 2 && this.slotTwoBlock !== null) {
+                    removedBlockModel = this.slotTwoBlock;
+                    this.slotTwoBlock = null;
+                }
+                return removedBlockModel;
+            }
+        }
+
+        /**
+         * Custom Singly Linked List representing the entire tower state.
+         * The head of the linked list is the TOP-MOST level of the tower.
+         * Traversing `nextLowerLevelNode` moves down toward Level 1 at the base.
+         */
+        class TowerLevelsLinkedList {
+            constructor() {
+                this.topLevelHeadNode = null;
+                this.totalLevelCount = 0;
+            }
+
+            /**
+             * Inserts a brand new level on top of the tower.
+             * Time Complexity: O(1)
+             * Explanatory Note for Viva: We create a new level node whose level number
+             * is topLevelHeadNode.levelNumber + 1. The new node's next pointer points
+             * to the current topLevelHeadNode, and topLevelHeadNode is updated.
+             */
+            insertNewLevelAtTop() {
+                const nextLevelNumber = this.topLevelHeadNode !== null ? this.topLevelHeadNode.levelNumber + 1 : 1;
+                const newTopLevelNode = new TowerLevelNode(nextLevelNumber);
+                newTopLevelNode.nextLowerLevelNode = this.topLevelHeadNode;
+                this.topLevelHeadNode = newTopLevelNode;
+                this.totalLevelCount = this.totalLevelCount + 1;
+                return newTopLevelNode;
+            }
+
+            /**
+             * Traverses the linked list to find a level node by its level number.
+             * Time Complexity: O(N) where N is the number of levels.
+             */
+            findLevelNodeByNumber(targetLevelNumber) {
+                let currentTraversalNode = this.topLevelHeadNode;
+                while (currentTraversalNode !== null) {
+                    if (currentTraversalNode.levelNumber === targetLevelNumber) {
+                        return currentTraversalNode;
+                    }
+                    currentTraversalNode = currentTraversalNode.nextLowerLevelNode;
+                }
+                return null;
+            }
+
+            /**
+             * Traverses and unlinks any level node that contains zero blocks.
+             * Time Complexity: O(N)
+             * Explanatory Note for Viva: Standard linked list node deletion by tracking
+             * previous and current pointers. Updates previous.nextLowerLevelNode = current.nextLowerLevelNode.
+             */
+            unlinkEmptyLevelNodes() {
+                while (this.topLevelHeadNode !== null && this.topLevelHeadNode.calculateOccupiedBlockCount() === 0) {
+                    this.topLevelHeadNode = this.topLevelHeadNode.nextLowerLevelNode;
+                    this.totalLevelCount = this.totalLevelCount - 1;
+                }
+
+                let currentLevelNode = this.topLevelHeadNode;
+                let previousLevelNode = null;
+
+                while (currentLevelNode !== null) {
+                    if (currentLevelNode.calculateOccupiedBlockCount() === 0) {
+                        if (previousLevelNode !== null) {
+                            previousLevelNode.nextLowerLevelNode = currentLevelNode.nextLowerLevelNode;
+                            this.totalLevelCount = this.totalLevelCount - 1;
+                            currentLevelNode = previousLevelNode.nextLowerLevelNode;
+                            continue;
+                        }
+                    }
+                    previousLevelNode = currentLevelNode;
+                    currentLevelNode = currentLevelNode.nextLowerLevelNode;
+                }
+            }
+
+            /**
+             * Calculates the total number of blocks currently residing across all levels.
+             */
+            calculateTotalBlocksInTower() {
+                let totalBlockCounter = 0;
+                let currentTraversalNode = this.topLevelHeadNode;
+                while (currentTraversalNode !== null) {
+                    totalBlockCounter = totalBlockCounter + currentTraversalNode.calculateOccupiedBlockCount();
+                    currentTraversalNode = currentTraversalNode.nextLowerLevelNode;
+                }
+                return totalBlockCounter;
+            }
+
+            /**
+             * Formats the singly linked list into a string representation for viva inspection.
+             */
+            formatLinkedListForDisplay() {
+                if (this.topLevelHeadNode === null) {
+                    return "Top Head -> [Empty Tower] -> NULL";
+                }
+                let formattedOutputString = "Top Level Head\n";
+                let currentTraversalNode = this.topLevelHeadNode;
+                while (currentTraversalNode !== null) {
+                    const blockCount = currentTraversalNode.calculateOccupiedBlockCount();
+                    formattedOutputString += `  [Level ${currentTraversalNode.levelNumber}: ${blockCount} blocks] -> \n`;
+                    currentTraversalNode = currentTraversalNode.nextLowerLevelNode;
+                }
+                return formattedOutputString + "  [Base Ground Pedestal] -> NULL";
+            }
+        }
+
+        /* ==========================================================================
+           4. GAME STATE & CONTROLLER IMPLEMENTATION
+           ========================================================================== */
+
+        const vibrantColourPalette = [
+            "#f43f5e", // Rose Red
+            "#3b82f6", // Royal Blue
+            "#10b981", // Emerald Green
+            "#f59e0b", // Amber Orange
+            "#8b5cf6", // Purple Violet
+            "#06b6d4"  // Cyan Teal
+        ];
+
+        class TumbleTowerGameEngine {
+            constructor() {
+                // Core Data Structures
+                this.towerLevelsLinkedList = new TowerLevelsLinkedList();
+                this.playerTurnQueue = new CustomPlayerQueue();
+                this.moveHistoryStack = new CustomLinkedStack();
+                this.auxiliaryExtractionStack = new CustomLinkedStack();
+
+                // Telemetry and Statistics
+                this.totalMovesExecuted = 0;
+                this.totalBlocksExtractedCount = 0;
+                this.totalBlocksPlacedCount = 0;
+                this.playerMoveCountersMap = {};
+
+                // Current Action State
+                this.selectedBlockForMove = null;
+                this.isGameSessionActive = false;
+                this.currentHighlightedSearchBlockId = null;
+
+                // DOM Bindings
+                this.bindUserInterfaceElements();
+                this.registerEventListeners();
+            }
+
+            bindUserInterfaceElements() {
+                this.visualTowerScaffoldElement = document.getElementById("visualTowerScaffold");
+                this.gameNotificationBoxElement = document.getElementById("gameNotificationBox");
+                this.currentPlayerAvatarCircleElement = document.getElementById("currentPlayerAvatarCircle");
+                this.currentPlayerNameHeaderElement = document.getElementById("currentPlayerNameHeader");
+                this.playerTurnActionGuidanceElement = document.getElementById("playerTurnActionGuidance");
+                this.playerTurnQueueContainerElement = document.getElementById("playerTurnQueueContainer");
+                this.telemetryLevelCountElement = document.getElementById("telemetryLevelCount");
+                this.telemetryBlockCountElement = document.getElementById("telemetryBlockCount");
+                this.telemetryTotalMovesElement = document.getElementById("telemetryTotalMoves");
+                this.telemetryBlocksPlacedElement = document.getElementById("telemetryBlocksPlaced");
+                this.movesPerPlayerContainerElement = document.getElementById("movesPerPlayerContainer");
+                this.moveHistoryLogContainerElement = document.getElementById("moveHistoryLogContainer");
+                this.selectedBlockStatusBadgeElement = document.getElementById("selectedBlockStatusBadge");
+                this.undoPlayerMoveButtonElement = document.getElementById("undoPlayerMoveButton");
+                this.searchBlockInputElement = document.getElementById("searchBlockInput");
+                this.executeBlockSearchButtonElement = document.getElementById("executeBlockSearchButton");
+                this.clearBlockSearchButtonElement = document.getElementById("clearBlockSearchButton");
+                this.liveDataStructuresInspectorSectionElement = document.getElementById("liveDataStructuresInspectorSection");
+                this.toggleDataStructuresInspectorButtonElement = document.getElementById("toggleDataStructuresInspectorButton");
+                this.linkedListInspectorDisplayElement = document.getElementById("linkedListInspectorDisplay");
+                this.queueInspectorDisplayElement = document.getElementById("queueInspectorDisplay");
+                this.stackInspectorDisplayElement = document.getElementById("stackInspectorDisplay");
+                this.auxiliaryStackInspectorDisplayElement = document.getElementById("auxiliaryStackInspectorDisplay");
+                this.playerSetupModalOverlayElement = document.getElementById("playerSetupModalOverlay");
+                this.gameOverModalOverlayElement = document.getElementById("gameOverModalOverlay");
+                this.gameOverSummaryMessageElement = document.getElementById("gameOverSummaryMessage");
+            }
+
+            registerEventListeners() {
+                document.getElementById("beginGameSessionButton").addEventListener("click", () => {
+                    this.handleInitializeSessionFromModal();
+                });
+
+                document.getElementById("restartGameModalButton").addEventListener("click", () => {
+                    this.playerSetupModalOverlayElement.style.display = "flex";
+                });
+
+                document.getElementById("modalRestartSessionButton").addEventListener("click", () => {
+                    this.gameOverModalOverlayElement.style.display = "none";
+                    this.playerSetupModalOverlayElement.style.display = "flex";
+                });
+
+                this.undoPlayerMoveButtonElement.addEventListener("click", () => {
+                    this.undoLastPlayerMove();
+                });
+
+                this.executeBlockSearchButtonElement.addEventListener("click", () => {
+                    this.executeBlockSearchQuery();
+                });
+
+                this.searchBlockInputElement.addEventListener("keypress", (keyboardEvent) => {
+                    if (keyboardEvent.key === "Enter") {
+                        this.executeBlockSearchQuery();
+                    }
+                });
+
+                this.clearBlockSearchButtonElement.addEventListener("click", () => {
+                    this.searchBlockInputElement.value = "";
+                    this.currentHighlightedSearchBlockId = null;
+                    this.redrawVisualTower();
+                    this.displayNotificationMessage("Search filter cleared.", "action-notification-success");
+                });
+
+                this.toggleDataStructuresInspectorButtonElement.addEventListener("click", () => {
+                    this.liveDataStructuresInspectorSectionElement.classList.toggle("visible");
+                    const isVisible = this.liveDataStructuresInspectorSectionElement.classList.contains("visible");
+                    this.toggleDataStructuresInspectorButtonElement.textContent = isVisible 
+                        ? "Hide Data Structures" 
+                        : "Inspect Data Structures";
+                });
+            }
+
+            /**
+             * Configures players entered in the setup modal and initializes the 10-level tower.
+             */
+            handleInitializeSessionFromModal() {
+                const playerOneName = document.getElementById("playerOneInput").value.trim() || "Player 1";
+                const playerTwoName = document.getElementById("playerTwoInput").value.trim() || "Player 2";
+                const playerThreeName = document.getElementById("playerThreeInput").value.trim();
+                const playerFourName = document.getElementById("playerFourInput").value.trim();
+
+                // Clear queue and stacks
+                this.playerTurnQueue = new CustomPlayerQueue();
+                this.moveHistoryStack.clearStack();
+                this.auxiliaryExtractionStack.clearStack();
+                this.playerMoveCountersMap = {};
+
+                // Enqueue players (FIFO queue)
+                this.playerTurnQueue.enqueuePlayer({ playerName: playerOneName, playerIdentifier: 1 });
+                this.playerMoveCountersMap[playerOneName] = 0;
+
+                this.playerTurnQueue.enqueuePlayer({ playerName: playerTwoName, playerIdentifier: 2 });
+                this.playerMoveCountersMap[playerTwoName] = 0;
+
+                if (playerThreeName.length > 0) {
+                    this.playerTurnQueue.enqueuePlayer({ playerName: playerThreeName, playerIdentifier: 3 });
+                    this.playerMoveCountersMap[playerThreeName] = 0;
+                }
+
+                if (playerFourName.length > 0) {
+                    this.playerTurnQueue.enqueuePlayer({ playerName: playerFourName, playerIdentifier: 4 });
+                    this.playerMoveCountersMap[playerFourName] = 0;
+                }
+
+                this.totalMovesExecuted = 0;
+                this.totalBlocksExtractedCount = 0;
+                this.totalBlocksPlacedCount = 0;
+                this.selectedBlockForMove = null;
+                this.currentHighlightedSearchBlockId = null;
+                this.isGameSessionActive = true;
+
+                this.playerSetupModalOverlayElement.style.display = "none";
+                this.gameOverModalOverlayElement.style.display = "none";
+
+                // Build initial 10-level tower
+                this.constructInitialTenLevelTower();
+                this.updateDashboardTelemetryViews();
+                this.redrawVisualTower();
+                this.displayNotificationMessage("New game started! Select any non-top block.", "action-notification-success");
+            }
+
+            /**
+             * Constructs the starting 10-level tower in the Singly Linked List.
+             * Levels are inserted at the top from Level 1 up to Level 10.
+             */
+            constructInitialTenLevelTower() {
+                this.towerLevelsLinkedList = new TowerLevelsLinkedList();
+                let globalBlockIdentifierCounter = 1;
+                let colourPaletteIndex = 0;
+
+                // Insert 10 levels into the Linked List
+                for (let levelNumber = 1; levelNumber <= 10; levelNumber = levelNumber + 1) {
+                    const newlyCreatedLevelNode = this.towerLevelsLinkedList.insertNewLevelAtTop();
+                    
+                    // Slot 0 (Left)
+                    const blockZeroColour = vibrantColourPalette[colourPaletteIndex % 6];
+                    colourPaletteIndex = colourPaletteIndex + 1;
+                    const blockZero = new TowerBlockModel(globalBlockIdentifierCounter, blockZeroColour, levelNumber, 0);
+                    newlyCreatedLevelNode.slotZeroBlock = blockZero;
+                    globalBlockIdentifierCounter = globalBlockIdentifierCounter + 1;
+
+                    // Slot 1 (Center)
+                    const blockOneColour = vibrantColourPalette[colourPaletteIndex % 6];
+                    colourPaletteIndex = colourPaletteIndex + 1;
+                    const blockOne = new TowerBlockModel(globalBlockIdentifierCounter, blockOneColour, levelNumber, 1);
+                    newlyCreatedLevelNode.slotOneBlock = blockOne;
+                    globalBlockIdentifierCounter = globalBlockIdentifierCounter + 1;
+
+                    // Slot 2 (Right)
+                    const blockTwoColour = vibrantColourPalette[colourPaletteIndex % 6];
+                    colourPaletteIndex = colourPaletteIndex + 1;
+                    const blockTwo = new TowerBlockModel(globalBlockIdentifierCounter, blockTwoColour, levelNumber, 2);
+                    newlyCreatedLevelNode.slotTwoBlock = blockTwo;
+                    globalBlockIdentifierCounter = globalBlockIdentifierCounter + 1;
+                }
+            }
+
+            /**
+             * Handles user selection of a block from the visual canvas.
+             * Validates candidate move and highlights selection.
+             */
+            handleBlockSelectionClick(selectedBlockModel) {
+                if (!this.isGameSessionActive) {
+                    return;
+                }
+
+                const validationResult = this.validateCandidateBlockRemoval(selectedBlockModel);
+                if (!validationResult.isValidMove) {
+                    this.displayNotificationMessage(validationResult.rejectionReasonMessage, "action-notification-error");
+                    return;
+                }
+
+                // If already selected, initiate placement onto the top level
+                if (this.selectedBlockForMove !== null && this.selectedBlockForMove.blockIdentifier === selectedBlockModel.blockIdentifier) {
+                    this.executeBlockExtractionAndPlacementOnTop(this.selectedBlockForMove);
+                    return;
+                }
+
+                this.selectedBlockForMove = selectedBlockModel;
+                this.selectedBlockStatusBadgeElement.textContent = `Selected: #${selectedBlockModel.blockIdentifier} (Level ${selectedBlockModel.currentLevelNumber}). Click again or click Top Level to place.`;
+                this.displayNotificationMessage(`Block #${selectedBlockModel.blockIdentifier} selected. Click it again to place on top!`, "action-notification-success");
+                this.redrawVisualTower();
+            }
+
+            /**
+             * Move Validation Rule Engine (#5):
+             * 1. Reject removal from the top-most level.
+             * 2. Reject removal from an empty slot.
+             * 3. Reject removal if it leaves the level completely empty (0 blocks).
+             */
+            validateCandidateBlockRemoval(candidateBlockModel) {
+                if (candidateBlockModel === null) {
+                    return { isValidMove: false, rejectionReasonMessage: "No block specified in slot." };
+                }
+
+                const topMostLevelNumber = this.towerLevelsLinkedList.topLevelHeadNode.levelNumber;
+                if (candidateBlockModel.currentLevelNumber === topMostLevelNumber) {
+                    return { 
+                        isValidMove: false, 
+                        rejectionReasonMessage: "Move Rejected: You cannot remove a block from the top level!" 
+                    };
+                }
+
+                const targetLevelNode = this.towerLevelsLinkedList.findLevelNodeByNumber(candidateBlockModel.currentLevelNumber);
+                if (targetLevelNode === null) {
+                    return { isValidMove: false, rejectionReasonMessage: "Level node not found in linked list." };
+                }
+
+                // Count remaining blocks if this block were removed
+                const occupiedCount = targetLevelNode.calculateOccupiedBlockCount();
+                if (occupiedCount <= 1) {
+                    return { 
+                        isValidMove: false, 
+                        rejectionReasonMessage: "Move Rejected: Removing this block would leave Level " + targetLevelNode.levelNumber + " completely empty!" 
+                    };
+                }
+
+                return { isValidMove: true, rejectionReasonMessage: "" };
+            }
+
+            /**
+             * Executes block removal using the Auxiliary Stack Pattern (#2):
+             * 1. Pop blocks/levels above target onto auxiliaryBlockStack.
+             * 2. Remove the selected block.
+             * 3. Restore auxiliary stack.
+             * 4. Place removed block on top level.
+             */
+            executeBlockExtractionAndPlacementOnTop(blockToMove) {
+                const activePlayer = this.playerTurnQueue.peekFrontPlayer();
+                const originalLevelNumber = blockToMove.currentLevelNumber;
+                const originalSlotIndex = blockToMove.slotPositionIndex;
+
+                // Step 1: Simulate auxiliary stack extraction of upper levels
+                this.auxiliaryExtractionStack.clearStack();
+                let currentTraversalNode = this.towerLevelsLinkedList.topLevelHeadNode;
+                
+                // Push upper levels metadata onto auxiliary stack
+                while (currentTraversalNode !== null && currentTraversalNode.levelNumber > originalLevelNumber) {
+                    this.auxiliaryExtractionStack.pushItemOntoStack({
+                        levelNumber: currentTraversalNode.levelNumber,
+                        occupiedBlocks: currentTraversalNode.calculateOccupiedBlockCount(),
+                        actionDescription: `Holding Level ${currentTraversalNode.levelNumber}`
+                    });
+                    currentTraversalNode = currentTraversalNode.nextLowerLevelNode;
+                }
+
+                // Step 2: Remove the block from its current level node
+                const sourceLevelNode = this.towerLevelsLinkedList.findLevelNodeByNumber(originalLevelNumber);
+                sourceLevelNode.removeBlockFromSlotIndex(originalSlotIndex);
+                this.totalBlocksExtractedCount = this.totalBlocksExtractedCount + 1;
+
+                // Step 3: Restore auxiliary stack
+                while (!this.auxiliaryExtractionStack.isStackEmpty()) {
+                    this.auxiliaryExtractionStack.popItemFromStack();
+                }
+
+                // Step 4: Place block on top level (or create a new top level if current top level is full)
+                let destinationLevelNode = this.towerLevelsLinkedList.topLevelHeadNode;
+                if (!destinationLevelNode.hasAvailableSlot()) {
+                    destinationLevelNode = this.towerLevelsLinkedList.insertNewLevelAtTop();
+                }
+                const placedSlotIndex = destinationLevelNode.placeBlockInFirstAvailableSlot(blockToMove);
+                this.totalBlocksPlacedCount = this.totalBlocksPlacedCount + 1;
+                this.totalMovesExecuted = this.totalMovesExecuted + 1;
+
+                // Increment player's move counter
+                this.playerMoveCountersMap[activePlayer.playerName] = (this.playerMoveCountersMap[activePlayer.playerName] || 0) + 1;
+
+                // Step 5: Push move record onto MoveHistoryStack
+                this.moveHistoryStack.pushItemOntoStack({
+                    playerName: activePlayer.playerName,
+                    blockIdentifier: blockToMove.blockIdentifier,
+                    blockColour: blockToMove.blockColour,
+                    originalLevelNumber: originalLevelNumber,
+                    originalSlotIndex: originalSlotIndex,
+                    destinationLevelNumber: destinationLevelNode.levelNumber,
+                    destinationSlotIndex: placedSlotIndex,
+                    actionDescription: `${activePlayer.playerName} moved #${blockToMove.blockIdentifier} from L${originalLevelNumber} to L${destinationLevelNode.levelNumber}`
+                });
+
+                this.selectedBlockForMove = null;
+                this.selectedBlockStatusBadgeElement.textContent = "No block selected";
+
+                // Step 6: Verify tower stability (#8)
+                const stabilityCheckResult = this.evaluateTowerStability();
+                if (!stabilityCheckResult.isTowerStable) {
+                    this.redrawVisualTower();
+                    this.updateDashboardTelemetryViews();
+                    this.triggerGameOverSequence(activePlayer, stabilityCheckResult.instabilityReasonMessage);
+                    return;
+                }
+
+                // Step 7: Rotate Player Turn Queue (FIFO)
+                const finishedPlayer = this.playerTurnQueue.dequeuePlayer();
+                this.playerTurnQueue.enqueuePlayer(finishedPlayer);
+
+                this.displayNotificationMessage(`Move completed! Next turn: ${this.playerTurnQueue.peekFrontPlayer().playerName}`, "action-notification-success");
+                this.redrawVisualTower();
+                this.updateDashboardTelemetryViews();
+            }
+
+            /**
+             * Stability Detection (#8):
+             * Tower collapses if:
+             * 1. Total level count is less than 2.
+             * 2. Any level has ONLY ONE block, and that block is located on an edge (Slot 0 or Slot 2).
+             */
+            evaluateTowerStability() {
+                if (this.towerLevelsLinkedList.totalLevelCount < 2) {
+                    return {
+                        isTowerStable: false,
+                        instabilityReasonMessage: "Tower has fewer than 2 levels remaining!"
+                    };
+                }
+
+                let currentLevelNode = this.towerLevelsLinkedList.topLevelHeadNode;
+                while (currentLevelNode !== null) {
+                    const blockCount = currentLevelNode.calculateOccupiedBlockCount();
+                    if (blockCount === 1) {
+                        // Unbalanced edge condition: only Slot 0 or only Slot 2 has a block
+                        if (currentLevelNode.slotZeroBlock !== null || currentLevelNode.slotTwoBlock !== null) {
+                            return {
+                                isTowerStable: false,
+                                instabilityReasonMessage: `Critical Imbalance! Level ${currentLevelNode.levelNumber} had only one block resting on an outer edge!`
+                            };
+                        }
+                    }
+                    currentLevelNode = currentLevelNode.nextLowerLevelNode;
+                }
+
+                return { isTowerStable: true, instabilityReasonMessage: "" };
+            }
+
+            /**
+             * Reverses the most recent move using the MoveHistoryStack (#7).
+             */
+            undoLastPlayerMove() {
+                if (this.moveHistoryStack.isStackEmpty() || !this.isGameSessionActive) {
+                    return;
+                }
+
+                const lastMoveRecord = this.moveHistoryStack.popItemFromStack();
+                const destinationLevelNode = this.towerLevelsLinkedList.findLevelNodeByNumber(lastMoveRecord.destinationLevelNumber);
+                const restoredBlock = destinationLevelNode.removeBlockFromSlotIndex(lastMoveRecord.destinationSlotIndex);
+
+                // Unlink empty level if destination top level was newly created and is now empty
+                this.towerLevelsLinkedList.unlinkEmptyLevelNodes();
+
+                // Restore block to its original level and slot
+                let sourceLevelNode = this.towerLevelsLinkedList.findLevelNodeByNumber(lastMoveRecord.originalLevelNumber);
+                if (sourceLevelNode === null) {
+                    // Level had been unlinked; recreate it
+                    sourceLevelNode = this.towerLevelsLinkedList.insertNewLevelAtTop();
+                    sourceLevelNode.levelNumber = lastMoveRecord.originalLevelNumber;
+                }
+
+                if (lastMoveRecord.originalSlotIndex === 0) {
+                    sourceLevelNode.slotZeroBlock = restoredBlock;
+                } else if (lastMoveRecord.originalSlotIndex === 1) {
+                    sourceLevelNode.slotOneBlock = restoredBlock;
+                } else {
+                    sourceLevelNode.slotTwoBlock = restoredBlock;
+                }
+                restoredBlock.currentLevelNumber = lastMoveRecord.originalLevelNumber;
+                restoredBlock.slotPositionIndex = lastMoveRecord.originalSlotIndex;
+
+                // Adjust player turn queue: restore previous player to the front of queue
+                // We pop the rear player (who just played) and put them back at front
+                let previousPlayerCandidate = null;
+                const queueItemCount = this.playerTurnQueue.queueTotalCount;
+                for (let rotationIndex = 0; rotationIndex < queueItemCount - 1; rotationIndex = rotationIndex + 1) {
+                    const cycledPlayer = this.playerTurnQueue.dequeuePlayer();
+                    this.playerTurnQueue.enqueuePlayer(cycledPlayer);
+                }
+                previousPlayerCandidate = this.playerTurnQueue.dequeuePlayer();
+                this.playerTurnQueue.putPlayerBackAtFrontOfQueue(previousPlayerCandidate);
+
+                // Decrement move counter
+                this.playerMoveCountersMap[lastMoveRecord.playerName] = Math.max(0, (this.playerMoveCountersMap[lastMoveRecord.playerName] || 1) - 1);
+                this.totalMovesExecuted = Math.max(0, this.totalMovesExecuted - 1);
+                this.totalBlocksPlacedCount = Math.max(0, this.totalBlocksPlacedCount - 1);
+                this.totalBlocksExtractedCount = Math.max(0, this.totalBlocksExtractedCount - 1);
+
+                this.selectedBlockForMove = null;
+                this.selectedBlockStatusBadgeElement.textContent = "No block selected";
+                this.displayNotificationMessage(`Undid move by ${lastMoveRecord.playerName}.`, "action-notification-success");
+
+                this.redrawVisualTower();
+                this.updateDashboardTelemetryViews();
+            }
+
+            /**
+             * Block Search & Tracking Feature (#3):
+             * Searches by block number or colour name, highlights the match, and displays its level.
+             */
+            executeBlockSearchQuery() {
+                const searchKeyword = this.searchBlockInputElement.value.trim().toLowerCase();
+                if (searchKeyword.length === 0) {
+                    this.displayNotificationMessage("Please enter a block number or colour to search.", "action-notification-error");
+                    return;
+                }
+
+                let foundMatchingBlock = null;
+                let currentLevelNode = this.towerLevelsLinkedList.topLevelHeadNode;
+
+                while (currentLevelNode !== null && foundMatchingBlock === null) {
+                    const slotZero = currentLevelNode.slotZeroBlock;
+                    const slotOne = currentLevelNode.slotOneBlock;
+                    const slotTwo = currentLevelNode.slotTwoBlock;
+
+                    if (slotZero !== null && (slotZero.blockIdentifier.toString() === searchKeyword || slotZero.blockColour.toLowerCase().includes(searchKeyword))) {
+                        foundMatchingBlock = slotZero;
+                    } else if (slotOne !== null && (slotOne.blockIdentifier.toString() === searchKeyword || slotOne.blockColour.toLowerCase().includes(searchKeyword))) {
+                        foundMatchingBlock = slotOne;
+                    } else if (slotTwo !== null && (slotTwo.blockIdentifier.toString() === searchKeyword || slotTwo.blockColour.toLowerCase().includes(searchKeyword))) {
+                        foundMatchingBlock = slotTwo;
+                    }
+                    currentLevelNode = currentLevelNode.nextLowerLevelNode;
+                }
+
+                if (foundMatchingBlock !== null) {
+                    this.currentHighlightedSearchBlockId = foundMatchingBlock.blockIdentifier;
+                    this.redrawVisualTower();
+                    this.displayNotificationMessage(`Found Block #${foundMatchingBlock.blockIdentifier} on Level ${foundMatchingBlock.currentLevelNumber}!`, "action-notification-success");
+                } else {
+                    this.currentHighlightedSearchBlockId = null;
+                    this.redrawVisualTower();
+                    this.displayNotificationMessage("No matching block found in the tower.", "action-notification-error");
+                }
+            }
+
+            /**
+             * Ends the game and displays the losing player modal.
+             */
+            triggerGameOverSequence(losingPlayer, collapseReasonDescription) {
+                this.isGameSessionActive = false;
+                this.undoPlayerMoveButtonElement.disabled = true;
+                this.gameOverSummaryMessageElement.innerHTML = `
+                    <strong>${losingPlayer.playerName}</strong> caused the tower to tumble!<br><br>
+                    <span style="color: #94a3b8; font-size: 0.88rem;">${collapseReasonDescription}</span>
+                `;
+                this.gameOverModalOverlayElement.style.display = "flex";
+            }
+
+            /**
+             * Renders the tower on screen by traversing the TowerLevelsLinkedList.
+             */
+            redrawVisualTower() {
+                this.visualTowerScaffoldElement.innerHTML = "";
+
+                // Collect levels into linear sequence for rendering from bottom to top
+                // We use an internal array solely for reversed visual DOM mounting
+                const renderingLevelNodesList = [];
+                let currentLevelTraversalNode = this.towerLevelsLinkedList.topLevelHeadNode;
+                while (currentLevelTraversalNode !== null) {
+                    renderingLevelNodesList.push(currentLevelTraversalNode);
+                    currentLevelTraversalNode = currentLevelTraversalNode.nextLowerLevelNode;
+                }
+
+                // Render in ascending level order so visually level 1 is at the bottom
+                for (let levelIndex = renderingLevelNodesList.length - 1; levelIndex >= 0; levelIndex = levelIndex - 1) {
+                    const levelNode = renderingLevelNodesList[levelIndex];
+                    const levelRowElement = document.createElement("div");
+                    levelRowElement.className = "tower-level-row";
+
+                    // Level badge indicator
+                    const levelBadgeElement = document.createElement("div");
+                    levelBadgeElement.className = "level-identifier-badge";
+                    levelBadgeElement.textContent = `Lvl ${levelNode.levelNumber}`;
+                    levelRowElement.appendChild(levelBadgeElement);
+
+                    // Slots 0, 1, and 2
+                    levelRowElement.appendChild(this.createBlockSlotElement(levelNode.slotZeroBlock, levelNode.levelNumber, 0));
+                    levelRowElement.appendChild(this.createBlockSlotElement(levelNode.slotOneBlock, levelNode.levelNumber, 1));
+                    levelRowElement.appendChild(this.createBlockSlotElement(levelNode.slotTwoBlock, levelNode.levelNumber, 2));
+
+                    this.visualTowerScaffoldElement.appendChild(levelRowElement);
+                }
+            }
+
+            createBlockSlotElement(blockModel, levelNumber, slotIndex) {
+                if (blockModel === null) {
+                    const emptySlotElement = document.createElement("div");
+                    emptySlotElement.className = "empty-block-slot";
+                    return emptySlotElement;
+                }
+
+                const blockElement = document.createElement("div");
+                blockElement.className = "tower-block";
+                blockElement.style.backgroundColor = blockModel.blockColour;
+                blockElement.textContent = `#${blockModel.blockIdentifier}`;
+
+                if (this.selectedBlockForMove !== null && this.selectedBlockForMove.blockIdentifier === blockModel.blockIdentifier) {
+                    blockElement.classList.add("selected-for-extraction");
+                }
+
+                if (this.currentHighlightedSearchBlockId === blockModel.blockIdentifier) {
+                    blockElement.classList.add("search-match-highlight");
+                }
+
+                blockElement.addEventListener("click", () => {
+                    this.handleBlockSelectionClick(blockModel);
+                });
+
+                return blockElement;
+            }
+
+            /**
+             * Synchronizes sidebar statistics and live data structure telemetry views.
+             */
+            updateDashboardTelemetryViews() {
+                const activePlayer = this.playerTurnQueue.peekFrontPlayer();
+                if (activePlayer !== null) {
+                    this.currentPlayerNameHeaderElement.textContent = activePlayer.playerName;
+                    this.currentPlayerAvatarCircleElement.textContent = activePlayer.playerName.charAt(0).toUpperCase();
+                }
+
+                // Render Turn Queue
+                this.playerTurnQueueContainerElement.innerHTML = "";
+                let currentQueueTraversalNode = this.playerTurnQueue.frontQueueNode;
+                let queuePositionIndex = 0;
+                while (currentQueueTraversalNode !== null) {
+                    const playerPillElement = document.createElement("div");
+                    playerPillElement.className = "queue-item-pill" + (queuePositionIndex === 0 ? " front-turn" : "");
+                    playerPillElement.textContent = (queuePositionIndex === 0 ? "★ " : "") + currentQueueTraversalNode.playerDataPayload.playerName;
+                    this.playerTurnQueueContainerElement.appendChild(playerPillElement);
+                    currentQueueTraversalNode = currentQueueTraversalNode.nextQueueNode;
+                    queuePositionIndex = queuePositionIndex + 1;
+                }
+
+                // Telemetry Counters
+                this.telemetryLevelCountElement.textContent = this.towerLevelsLinkedList.totalLevelCount;
+                this.telemetryBlockCountElement.textContent = this.towerLevelsLinkedList.calculateTotalBlocksInTower();
+                this.telemetryTotalMovesElement.textContent = this.totalMovesExecuted;
+                this.telemetryBlocksPlacedElement.textContent = this.totalBlocksPlacedCount;
+
+                // Moves Per Player list
+                this.movesPerPlayerContainerElement.innerHTML = "";
+                const playerNamesList = Object.keys(this.playerMoveCountersMap);
+                for (let playerIndex = 0; playerIndex < playerNamesList.length; playerIndex = playerIndex + 1) {
+                    const playerNameKey = playerNamesList[playerIndex];
+                    const countRowElement = document.createElement("div");
+                    countRowElement.style.display = "flex";
+                    countRowElement.style.justifyContent = "space-between";
+                    countRowElement.innerHTML = `<span>${playerNameKey}</span><strong>${this.playerMoveCountersMap[playerNameKey]} moves</strong>`;
+                    this.movesPerPlayerContainerElement.appendChild(countRowElement);
+                }
+
+                // Render Move History Stack
+                this.moveHistoryLogContainerElement.innerHTML = "";
+                if (this.moveHistoryStack.isStackEmpty()) {
+                    this.moveHistoryLogContainerElement.innerHTML = '<div style="font-size: 0.78rem; color: #64748b; text-align: center; padding: 20px;">No moves recorded yet</div>';
+                    this.undoPlayerMoveButtonElement.disabled = true;
+                } else {
+                    this.undoPlayerMoveButtonElement.disabled = !this.isGameSessionActive;
+                    let currentHistoryNode = this.moveHistoryStack.topStackNode;
+                    while (currentHistoryNode !== null) {
+                        const historyPayload = currentHistoryNode.stackDataPayload;
+                        const recordEntryElement = document.createElement("div");
+                        recordEntryElement.className = "history-record-entry";
+                        recordEntryElement.innerHTML = `
+                            <div>
+                                <strong>${historyPayload.playerName}</strong>: #${historyPayload.blockIdentifier}
+                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:${historyPayload.blockColour}; margin-left:4px;"></span>
+                            </div>
+                            <span>L${historyPayload.originalLevelNumber} &rarr; L${historyPayload.destinationLevelNumber}</span>
+                        `;
+                        this.moveHistoryLogContainerElement.appendChild(recordEntryElement);
+                        currentHistoryNode = currentHistoryNode.nextStackNode;
+                    }
+                }
+
+                // Live Viva Inspector Displays
+                this.linkedListInspectorDisplayElement.textContent = this.towerLevelsLinkedList.formatLinkedListForDisplay();
+                this.queueInspectorDisplayElement.textContent = this.playerTurnQueue.formatQueueForDisplay();
+                this.stackInspectorDisplayElement.textContent = this.moveHistoryStack.formatStackForDisplay();
+                this.auxiliaryStackInspectorDisplayElement.textContent = this.auxiliaryExtractionStack.isStackEmpty() 
+                    ? "Top -> [Idle / Empty]\n(Populated dynamically during extraction to hold levels above)" 
+                    : this.auxiliaryExtractionStack.formatStackForDisplay();
+            }
+
+            displayNotificationMessage(messageText, notificationTypeClass) {
+                this.gameNotificationBoxElement.textContent = messageText;
+                this.gameNotificationBoxElement.className = "action-notification-box " + notificationTypeClass;
+                this.gameNotificationBoxElement.style.display = "block";
+
+                if (this.notificationTimerReference) {
+                    clearTimeout(this.notificationTimerReference);
+                }
+                this.notificationTimerReference = setTimeout(() => {
+                    this.gameNotificationBoxElement.style.display = "none";
+                }, 4000);
+            }
+        }
+
+        // Initialize the game instance on window load
+        window.addEventListener("DOMContentLoaded", () => {
+            window.activeTumbleTowerGameEngine = new TumbleTowerGameEngine();
+        });
+    </script>
+</body>
+</html>
